@@ -1,0 +1,13 @@
+- name: Check OSPF neighbor state via Ansible
+  hosts: frr
+  gather_facts: false
+  tasks:
+    - name: Show OSPF neighbors
+      ansible.builtin.command:
+        cmd: vtysh -c "show ip ospf neighbor"
+      register: ospf_neighbors
+      changed_when: false
+
+    - name: Display OSPF neighbor output
+      ansible.builtin.debug:
+        var: ospf_neighbors.stdout_lines
