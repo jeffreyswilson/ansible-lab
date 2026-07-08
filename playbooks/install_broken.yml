@@ -1,7 +1,8 @@
-- hosts: servers
-  become: yes
+- name: Install nginx the wrong way
+  hosts: servers
+  become: true
   tasks:
     - name: Install nginx (breaking idempotence deliberately)
-      command: 
+      ansible.builtin.command:
         cmd: apt install -y nginx
         creates: /usr/sbin/nginx

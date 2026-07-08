@@ -1,8 +1,9 @@
-- hosts: servers
-  become: yes
+- name: Install nginx on servers
+  hosts: servers
+  become: true
   tasks:
     - name: Install nginx
-      apt:
+      ansible.builtin.apt:
         name: nginx
         state: present
-        update_cache: yes
+        update_cache: true
