@@ -1,0 +1,14 @@
+- hosts: servers
+  become: yes
+  tasks: 
+    - name: Deploy index page from template
+      template: 
+        src: ../templates/index.html.j2
+        dest: /var/www/html/index.html
+      notify: Restart nginx
+
+  handlers:
+    - name: Restart nginx
+      service: 
+        name: nginx
+        state: restarted

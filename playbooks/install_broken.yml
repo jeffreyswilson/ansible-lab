@@ -1,0 +1,7 @@
+- hosts: servers
+  become: yes
+  tasks:
+    - name: Install nginx (breaking idempotence deliberately)
+      command: 
+        cmd: apt install -y nginx
+        creates: /usr/sbin/nginx
