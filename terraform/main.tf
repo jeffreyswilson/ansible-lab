@@ -30,9 +30,10 @@ resource "aws_subnet" "lab" {
 }
 
 resource "aws_subnet" "imported" {
-  vpc_id            = aws_vpc.lab.id
-  cidr_block        = "10.100.2.0/24"
-  availability_zone = "us-east-1a"
+  vpc_id                  = aws_vpc.lab.id
+  cidr_block              = var.import_cidr
+  availability_zone       = var.availability_zone
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "terraform-lab-subnet-imported"
