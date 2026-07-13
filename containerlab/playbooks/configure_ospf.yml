@@ -1,4 +1,4 @@
-- name: Configure FRR OSPF via templated config + frr-reload diff-apply
+- name: Configure FRR OSPF via templated config, applied directly via vtysh
   hosts: frr
   gather_facts: false
   tasks:
@@ -7,8 +7,15 @@
         src: templates/frr.conf.j2
         dest: /tmp/frr-target.conf
 
-    - name: Apply via frr-reload (diff-based, only changes when diffs arise)
-      ansible.builtin.template:
-        cmd: /usr/lib/frr/frr-reload.py --reload --overwrite /tmp/frr-target.conf
-      register: reload_result
-      changed_when: "'Nothing to do' not in reload_result.stdout"
+    - name: Get current OSPF running-config
+      ansible.builtin.command:
+        cmd: vtysh -c "show running-config"
+      register: current_config
+      changed_when: false
+
+    - name: Apply target config only if router ospf block is missing
+      ansible.builtin.command:
+        cmd: vtysh -f /tmp/frr-target.conf
+      when: "'router ospf' not in current_config.stdout"
+      register: apply_result
+      changed_when: apply_result is not skipped
