@@ -1,3 +1,4 @@
+---
 - name: Configure FRR OSPF via templated config, applied directly via vtysh
   hosts: frr
   gather_facts: false
