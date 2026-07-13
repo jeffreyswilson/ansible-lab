@@ -1,0 +1,6 @@
+frr_interfaces:
+  - name: eth1
+    address: 10.0.23.2/30
+    ospf_neighbors: [10.0.23.1]
+frr_ospf_networks:
+  - 10.0.23.0/30

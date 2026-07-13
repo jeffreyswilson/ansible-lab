@@ -1,0 +1,23 @@
+   name: frr-lab
+
+   topology:
+     nodes:
+       frr1:
+         kind: linux
+         image: frrouting/frr:latest
+         binds:
+           - daemons-ospf:/etc/frr/daemons
+       frr2:
+         kind: linux
+         image: frrouting/frr:latest
+         binds:
+           - daemons-ospf:/etc/frr/daemons
+       frr3:
+         kind: linux
+         image: frrouting/frr:latest
+         binds:
+           - daemons-ospf:/etc/frr/daemons
+
+     links:
+       - endpoints: ["frr1:eth1", "frr2:eth1"]
+       - endpoints: ["frr2:eth2", "frr3:eth1"]

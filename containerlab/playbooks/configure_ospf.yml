@@ -1,0 +1,14 @@
+- name: Configure FRR OSPF via templated config + frr-reload diff-apply
+  hosts: frr
+  gather_facts: false
+  tasks:
+    - name: Render frr.conf
+      ansible.builtin.template:
+        src: templates/frr.conf.j2
+        dest: /tmp/frr-target.conf
+
+    - name: Apply via frr-reload (diff-based, only changes when diffs arise)
+      ansible.builtin.template:
+        cmd: /usr/lib/frr/frr-reload.py --reload --overwrite /tmp/frr-target.conf
+      register: reload_result
+      changed_when: "'Nothing to do' not in reload_result.stdout"

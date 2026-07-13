@@ -1,0 +1,19 @@
+!
+{% for iface in frr_interfaces %}
+interface {{ iface.name }}
+  ip address {{ iface.address }}
+  ip ospf network non-broadcast
+  ip ospf hello-interval 10
+  ip ospf dead-interval 40
+!
+{% endfor %}
+router ospf
+{% for net in frr_ospf_networks %}
+  network {{ net }} area 0
+{% endfor %}
+{% for iface in frr_interfaces %}
+{% for neighbor in iface.ospf_neighbors %}
+  neighbor {{ neighbor }} priority 1
+{% endfor %}
+{% endfor %}
+!
