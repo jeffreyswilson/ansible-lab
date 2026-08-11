@@ -21,3 +21,15 @@ variable "import_cidr" {
   type        = string
   default     = "10.100.2.0/24"
 }
+
+variable "vpc2_cidr" {
+  description = "CIDR block for the second lab VPC (TGW peer)"
+  type        = string
+  default     = "10.200.0.0/16"
+}
+
+variable "vpc2_subnet_cidr" {
+  description = "CIDR block for the second VPC's subnet"
+  type        = string
+  default     = "10.200.1.0/24"
+}
