@@ -31,3 +31,4 @@ has been with CVS and SVN. The departure from this familiar base requires
 some retooling of my imagination. My "lab" requires that I make a trivial
 change to the repo to watch divergence and reconciliation in action. This
 paragraph meets that trivial requirement.
+master line
