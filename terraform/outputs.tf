@@ -57,3 +57,18 @@ output "vpc2_subnet_id" {
   description = "ID of the second VPC's subnet"
   value       = aws_subnet.vpc2.id
 }
+
+output "tgw_id" {
+  description = "ID of the transit gateway"
+  value       = aws_ec2_transit_gateway.lab.id
+}
+
+output "tgw_attachment_vpc1_id" {
+  description = "ID of the VPC1 TGW attachment"
+  value       = aws_ec2_transit_gateway_vpc_attachment.vpc1.id
+}
+
+output "tgw_attachment_vpc2_id" {
+  description = "ID of the VPC2 TGW attachment"
+  value       = aws_ec2_transit_gateway_vpc_attachment.vpc2.id
+}
