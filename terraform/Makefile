@@ -5,7 +5,12 @@ HOURLY_TARGETS := \
 	-target=aws_nat_gateway.lab \
 	-target=aws_eip.nat \
 	-target=aws_ec2_transit_gateway_vpc_attachment.vpc1 \
-	-target=aws_ec2_transit_gateway_vpc_attachment.vpc2
+	-target=aws_ec2_transit_gateway_vpc_attachment.vpc2 \
+	-target=aws_ec2_transit_gateway_route_table_association.vpc1 \
+	-target=aws_ec2_transit_gateway_route_table_association.vpc2 \
+	-target=aws_ec2_transit_gateway_route_table_propagation.vpc1 \
+	-target=aws_ec2_transit_gateway_route_table_propagation.vpc2 \
+	-target=aws_route.private_default
 
 .PHONY: plan-pause pause plan-resume resume plan-full apply-full destroy-full state
 
