@@ -85,3 +85,35 @@ IAM Resource pattern to make an error go away, check whether the narrower scope
 is incidentally enforcing a boundary you actually want -- in this case, root
 manages budget-admin's own rights; budget-admin manages the guardrail pointed at
 terraform-lab; neither identity manages itself.
+
+## Terraform -target: destroy's dependency walk isn't mirrored on create (8/14/26)
+
+`terraform destroy -target=X` automatically pulls in every resource that
+*references* X (a downstream consumer), since leaving those pointing at a
+soon-to-not-exist ID would be invalid. Confirmed empirically: targeting only
+the 5 original HOURLY_TARGETS for `make pause` destroyed 10 resources --
+Terraform correctly cascaded to both TGW route table associations,
+propagations, and `aws_route.private_default`, none of which were named as
+targets.
+
+`terraform apply -target=X` does NOT walk the same direction. It only pulls
+in resources X itself *depends on* (upstream prerequisites), not resources
+that depend on X. Confirmed empirically: the first `make plan-resume`
+attempt, using the original 5-target list, showed only 5 creates -- the four
+TGW-side resources and `private_default` were silently absent. Running
+`make resume` as originally written would have recreated both TGW
+attachments with new IDs but left them unassociated and unpropagated, and
+left VPC1 with no default route at all -- a partially-resumed, silently
+broken state.
+
+Fix: HOURLY_TARGETS now explicitly lists all 10 resources (both directions
+of the dependency graph), not just the 5 that literally bill hourly. Verified
+via full pause -> plan-resume (10 adds, correct) -> resume -> unscoped
+`terraform plan` (zero drift) -> live AWS CLI checks (route tables, TGW
+propagation) all clean.
+
+Lesson: don't assume `-target`'s dependency-following behavior is symmetric
+between destroy and create/apply. Test the actual resume path with
+`plan-resume` before trusting a targeted pause/resume pair, even when the
+destroy side looked correct -- correct destroy behavior says nothing about
+whether resume will be complete.
