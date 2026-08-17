@@ -1,0 +1,167 @@
+# terraform/budget-guardrail/iam.tf.reference
+#
+# NOT ACTIVE TERRAFORM CONFIG. Renamed .reference so this directory's
+# `terraform plan`/`apply` never parses or manages it.
+#
+# This is a documented record of budget-admin's own permissions policy,
+# created manually via the AWS console under root -- same precedent as
+# MyLabBudgetCapsAt5, which is also unmanaged by Terraform.
+#
+# WHY THIS IS UNMANAGED, NOT JUST UNAPPLIED:
+# IamPolicyForBudgetAction's Resource pattern below is "*budget*" (lowercase),
+# which does NOT match this policy's own name, "BudgetGuardrailAdmin"
+# (capital B) -- IAM resource-ARN matching is a literal, case-sensitive
+# string match, no case-folding. Attempting to `terraform import` this
+# policy under budget-admin's own credentials fails with AccessDenied,
+# because budget-admin cannot read/version a policy whose ARN doesn't
+# match its own grant.
+#
+# This is being kept, not "fixed" by widening the pattern. Bringing this
+# policy under budget-admin's own managed state would mean budget-admin
+# can read and create new versions of its own attached policy -- a step
+# toward self-modification that the original identity split (see NOTES.md,
+# 8/14/26) was built specifically to prevent. The case mismatch was
+# accidental, but it happens to enforce the correct boundary: root manages
+# budget-admin's own rights; budget-admin manages the guardrail pointed at
+# terraform-lab. Different identities, different scopes, by design.
+#
+# If budget-admin's own permissions ever need to change, do it via root,
+# console or a separate root-owned Terraform state -- never from this
+# directory's budget-admin-scoped provider.
+#
+# ---
+#
+# UPDATE 8/17/26: the policy below is the FINAL, working version, arrived
+# at through six separate real-deploy failures, not designed up front.
+# Each statement's action list grew by exactly one action at a time, in
+# this order, each discovered only by running `terraform apply` and
+# reading the resulting AccessDenied error:
+#
+#   1. IamRoleForBudgetAction didn't exist at all originally -- first
+#      apply attempt failed on `iam:CreateRole` for
+#      budget-action-execution-role. Added the statement.
+#   2. Console's own IAM policy validator flagged the resulting
+#      `iam:PassRole` grant as "PassRole With Star In Resource" --
+#      even scoped to *budget*, PassRole alone doesn't say which SERVICE
+#      the role can be passed to. Fixed by adding an
+#      iam:PassedToService condition restricting it to
+#      budgets.amazonaws.com specifically, matching the role's own
+#      trust policy.
+#   3. `iam:ListRolePolicies` -- needed by the AWS provider to read back
+#      a role's inline policies after creating it (populates the
+#      `inline_policy` computed attribute).
+#   4. `iam:ListAttachedRolePolicies` -- added proactively alongside #3,
+#      same category of read, before it could surface as its own
+#      separate failure.
+#   5. `iam:ListInstanceProfilesForRole` -- needed on the DELETE path,
+#      not create: deleting an IAM role requires checking whether any
+#      instance profile still references it. Surfaced when a prior
+#      partial-apply left budget_action_execution "tainted" (Terraform's
+#      own marker for a resource whose create reported an error
+#      partway through -- forces a clean destroy+recreate rather than
+#      trusting an uncertain partial state) and the destroy half of
+#      that replace failed.
+#   6. `budgets:ListTagsForResource` -- missing from BudgetManagement
+#      entirely. Needed by the provider's post-create tag read-back on
+#      aws_budgets_budget_action itself, not the IAM role. This is what
+#      let the FIRST real budget-threshold-crossing execution attempt
+#      fail (documented via AWS's own emailed "Budget Action Alerts"
+#      notice, Failure Reason: "not authorized to perform:
+#      iam:AttachUserPolicy" -- a separate, earlier-discovered gap,
+#      already covered by AttachDetachOnTerraformLabOnly by the time
+#      this one surfaced, but the attempt still failed because the
+#      *budget action resource itself* was stuck tainted on the tag
+#      read, never reaching a stable state to re-execute from).
+#
+# Lesson: an IAM policy for a resource type you haven't deployed before
+# is a hypothesis, not a spec. Read/write/delete lifecycle actions for
+# any AWS resource type routinely include read-backs and dependency
+# checks that aren't obvious from the resource's own primary purpose
+# (a role's PRIMARY purpose is being assumed; DELETING it correctly
+# requires checking instance profile references, an entirely separate
+# concern). Budget the first real deploy attempt as a discovery pass,
+# not a validation pass -- expect several iterations before a
+# newly-scoped identity's policy is actually complete, and treat each
+# AccessDenied as free, precise information about exactly which action
+# to add next, rather than a signal to widen scope broadly.
+
+# resource "aws_iam_policy" "budget_guardrail_admin" {
+#   name        = "BudgetGuardrailAdmin"
+#   description = "Scoped rights to manage the terraform-lab budget deny-policy guardrail, nothing else"
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid    = "BudgetManagement"
+#         Effect = "Allow"
+#         Action = [
+#           "budgets:ViewBudget",
+#           "budgets:ModifyBudget",
+#           "budgets:CreateBudgetAction",
+#           "budgets:DescribeBudgetAction",
+#           "budgets:DescribeBudgetActionsForBudget",
+#           "budgets:UpdateBudgetAction",
+#           "budgets:DeleteBudgetAction",
+#           "budgets:ExecuteBudgetAction",
+#           "budgets:ListTagsForResource"
+#         ]
+#         Resource = "*"
+#       },
+#       {
+#         Sid      = "IamPolicyForBudgetAction"
+#         Effect   = "Allow"
+#         Action = [
+#           "iam:CreatePolicy",
+#           "iam:CreatePolicyVersion",
+#           "iam:DeletePolicyVersion",
+#           "iam:GetPolicy",
+#           "iam:GetPolicyVersion",
+#           "iam:ListPolicyVersions"
+#         ]
+#         Resource = "arn:aws:iam::529517534524:policy/*budget*"
+#       },
+#       {
+#         Sid      = "AttachDetachOnTerraformLabOnly"
+#         Effect   = "Allow"
+#         Action = [
+#           "iam:AttachUserPolicy",
+#           "iam:DetachUserPolicy",
+#           "iam:ListAttachedUserPolicies"
+#         ]
+#         Resource = "arn:aws:iam::529517534524:user/terraform-lab"
+#       },
+#       {
+#         Sid      = "IamRoleForBudgetAction"
+#         Effect   = "Allow"
+#         Action = [
+#           "iam:CreateRole",
+#           "iam:GetRole",
+#           "iam:PutRolePolicy",
+#           "iam:GetRolePolicy",
+#           "iam:DeleteRolePolicy",
+#           "iam:DeleteRole",
+#           "iam:ListRolePolicies",
+#           "iam:ListAttachedRolePolicies",
+#           "iam:ListInstanceProfilesForRole"
+#         ]
+#         Resource = "arn:aws:iam::529517534524:role/*budget*"
+#       },
+#       {
+#         Sid      = "PassBudgetExecutionRole"
+#         Effect   = "Allow"
+#         Action   = "iam:PassRole"
+#         Resource = "arn:aws:iam::529517534524:role/*budget*"
+#         Condition = {
+#           StringEquals = {
+#             "iam:PassedToService" = "budgets.amazonaws.com"
+#           }
+#         }
+#       }
+#     ]
+#   })
+# }
+#
+# resource "aws_iam_user_policy_attachment" "budget_guardrail_admin" {
+#   user       = "budget-admin"
+#   policy_arn = aws_iam_policy.budget_guardrail_admin.arn
+# }
