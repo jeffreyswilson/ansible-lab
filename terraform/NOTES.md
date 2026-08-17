@@ -117,3 +117,13 @@ between destroy and create/apply. Test the actual resume path with
 `plan-resume` before trusting a targeted pause/resume pair, even when the
 destroy side looked correct -- correct destroy behavior says nothing about
 whether resume will be complete.
+
+## BudgetGuardrailAdmin's final policy required 6 iterations (8/17/26)
+
+See `terraform/budget-guardrail/iam.tf.reference` for the full account.
+Each of iam:CreateRole, PassRole+PassedToService condition,
+ListRolePolicies, ListAttachedRolePolicies, ListInstanceProfilesForRole,
+and budgets:ListTagsForResource was discovered by running a real
+`terraform apply` and reading the resulting AccessDenied, not designed
+up front. Treat a newly-scoped IAM identity's first deploy as a
+discovery pass, not a validation pass.
