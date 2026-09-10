@@ -23,3 +23,5 @@ jobs:
 
       - name: Run ansible-lint
         run: ansible-lint
+        env:
+          ANSIBLE_INVENTORY: inventory.ci.ini
