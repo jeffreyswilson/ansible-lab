@@ -1,0 +1,39 @@
+---
+# playbooks/configure_ipsec.yml
+- name: Configure libreswan IPsec tunnels on on-prem-sim host
+  hosts: onprem
+  become: true
+
+  vars_files:
+    - ../group_vars/onprem_vpn_secrets.yml
+
+  tasks:
+    - name: Template ipsec.conf
+      ansible.builtin.template:
+        src: ../templates/ipsec.conf.j2
+        dest: /etc/ipsec.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart ipsec
+
+    - name: Template ipsec.secrets
+      ansible.builtin.template:
+        src: ../templates/ipsec.secrets.j2
+        dest: /etc/ipsec.secrets
+        owner: root
+        group: root
+        mode: '0600'
+      notify: Restart ipsec
+
+    - name: Ensure ipsec is enabled and running
+      ansible.builtin.systemd:
+        name: ipsec
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart ipsec
+      ansible.builtin.systemd:
+        name: ipsec
+        state: restarted

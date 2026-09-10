@@ -1,0 +1,9 @@
+# group_vars/onprem.yml
+onprem_local_cidr: "10.50.0.0/16"
+onprem_remote_cidr_vpc1: "10.100.0.0/16"
+
+vpn_tunnels:
+  - id: 1
+    aws_outside_ip: "34.233.103.3"
+  - id: 2
+    aws_outside_ip: "54.196.242.150"

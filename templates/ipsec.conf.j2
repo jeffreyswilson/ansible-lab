@@ -1,0 +1,22 @@
+{# templates/ipsec.conf.j2 #}
+config setup
+    plutodebug=all
+    uniqueids=no
+
+{% for tunnel in vpn_tunnels %}
+conn aws-tunnel{{ tunnel.id }}
+    authby=secret
+    auto=start
+    ikev2=no
+    ike=aes128-sha1;dh14
+    esp=aes128-sha1-dh14
+    keyingtries=%forever
+    left=%defaultroute
+    leftid={{ ansible_default_ipv4.address }}
+    leftsubnet={{ onprem_local_cidr }}
+    right={{ tunnel.aws_outside_ip }}
+    rightsubnet={{ onprem_remote_cidr_vpc1 }}
+    dpddelay=10
+    dpdtimeout=30
+    dpdaction=restart
+{% endfor %}
