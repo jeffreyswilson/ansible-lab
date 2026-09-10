@@ -10,7 +10,7 @@
   tasks:
     - name: Template ipsec.conf
       ansible.builtin.template:
-        src: ../templates/ipsec.conf.j2
+        src: templates/ipsec.conf.j2
         dest: /etc/ipsec.conf
         owner: root
         group: root
@@ -19,7 +19,7 @@
 
     - name: Template ipsec.secrets
       ansible.builtin.template:
-        src: ../templates/ipsec.secrets.j2
+        src: templates/ipsec.secrets.j2
         dest: /etc/ipsec.secrets
         owner: root
         group: root
