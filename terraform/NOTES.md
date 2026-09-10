@@ -21,8 +21,8 @@ NAT, EIP, route tables, SG, IAM role/profile, test instance), not just
 the Phase 2b subset intended. Full re-apply rebuilt all 15 resources
 clean. Demonstrates the gap between "destroy after each session" as
 written and what it actually costs when the destroy wasn't scoped --
-see career/stubs/aws_lab.md Decisions Log for the resulting pause/resume
-guardrail (structural vs. hourly-billed split), not yet implemented.
+see personal tracking doc for the resulting pause/resume guardrail
+(structural vs. hourly-billed split), not yet implemented.
 
 ## outputs.tf expansion (8/11/26)
 Original file only declared vpc_id/subnet_id. Added 8 more outputs
