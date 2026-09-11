@@ -25,3 +25,4 @@ jobs:
         run: ansible-lint
         env:
           ANSIBLE_INVENTORY: inventory.ci.ini
+          ANSIBLE_VAULT_PASSWORD_FILE: .github/ci/dummy_vault_pass.txt
