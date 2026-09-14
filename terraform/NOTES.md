@@ -127,3 +127,43 @@ and budgets:ListTagsForResource was discovered by running a real
 `terraform apply` and reading the resulting AccessDenied, not designed
 up front. Treat a newly-scoped IAM identity's first deploy as a
 discovery pass, not a validation pass.
+
+## VPN Tunnel Failover Monitor (9/14/26)
+
+Added a systemd-managed script (`playbooks/files/vpn-failover.sh`)
+that watches which tunnel currently holds the eroute and forces
+failover to the standby tunnel when the active one is lost.
+
+Both tunnels share an identical traffic selector, so libreswan will
+only ever give the eroute to one connection at a time -- this is the
+expected active/standby posture of a static-routing (no BGP/ECMP)
+two-tunnel VPN, not a bug.
+
+Two real findings, worth recording for anyone testing on a similar
+libreswan build (4.12):
+
+1. `ipsec down` / `ipsec up` are not valid commands on this build.
+   `ipsec --help` lists the actual subcommand surface -- the correct
+   invocation is `ipsec auto --down <conn>` / `ipsec auto --up <conn>`.
+2. `ipsec auto --down` tears down the IKE/IPsec state but does **not**
+   release the eroute. Bringing up the standby connection immediately
+   after fails with `cannot install eroute -- it is in use for
+   "<old-conn>"`. `ipsec auto --unroute <conn>` must run between the
+   `--down` and the standby's `--up`.
+
+Tested by forcing the active tunnel down (`ipsec auto --down
+aws-tunnel1`) and confirming the monitor detected the loss and brought
+up the standby within one poll cycle (~5s), fully automatic.
+
+### Deploy
+
+Not yet wired into the Ansible playbook -- deployed manually:
+
+```
+scp playbooks/files/vpn-failover.sh playbooks/files/vpn-failover.service ec2-user@<onprem-ip>:/tmp/
+ssh ec2-user@<onprem-ip>
+sudo install -m 755 /tmp/vpn-failover.sh /usr/local/bin/vpn-failover.sh
+sudo cp /tmp/vpn-failover.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now vpn-failover.service
+```

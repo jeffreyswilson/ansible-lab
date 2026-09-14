@@ -18,6 +18,8 @@ and progress.
 | playbooks/install.yml | Install `nginx` on nodes |
 | playbooks/configure.yml | Custom HTML per node |
 | group_vars/servers.yml | Capture server variables |
+| playbooks/files/vpn-failover.sh | Polls VPN tunnel state, forces failover to standby tunnel on active-tunnel loss (see terraform/NOTES.md) |
+| playbooks/files/vpn-failover.service | systemd unit for vpn-failover.sh |
 | ansible.cfg | Set reasonable project defaults |
 
 ## Project progress

@@ -1,0 +1,16 @@
+[Unit]
+Description=VPN tunnel failover monitor (aws-tunnel1/aws-tunnel2 shared-eroute failover)
+After=ipsec.service
+Requires=ipsec.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/vpn-failover.sh
+Restart=always
+RestartSec=5
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
