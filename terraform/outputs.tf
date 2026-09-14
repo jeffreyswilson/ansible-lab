@@ -72,3 +72,28 @@ output "tgw_attachment_vpc2_id" {
   description = "ID of the VPC2 TGW attachment"
   value       = aws_ec2_transit_gateway_vpc_attachment.vpc2.id
 }
+
+output "tgw_route_table_id" {
+  description = "ID of the transit gateway route table"
+  value       = aws_ec2_transit_gateway_route_table.lab.id
+}
+
+output "onprem_vpc_id" {
+  description = "ID of the on-prem simulation VPC"
+  value       = aws_vpc.onprem.id
+}
+
+output "onprem_subnet_id" {
+  description = "ID of the on-prem simulation public subnet"
+  value       = aws_subnet.onprem_public.id
+}
+
+output "onprem_instance_id" {
+  description = "ID of the on-prem simulation EC2 instance"
+  value       = aws_instance.onprem.id
+}
+
+output "onprem_security_group_id" {
+  description = "ID of the on-prem simulation security group"
+  value       = aws_security_group.onprem.id
+}
