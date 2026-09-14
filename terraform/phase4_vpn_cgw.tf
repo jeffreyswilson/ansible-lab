@@ -2,11 +2,15 @@
 
 resource "aws_customer_gateway" "onprem" {
   bgp_asn    = 65000 # placeholder -- unused with static_routes_only, required by schema regardless
-  ip_address = aws_instance.onprem.public_ip
+  ip_address = aws_eip.onprem.public_ip
   type       = "ipsec.1"
 
   tags = {
     Name = "onprem-sim-cgw"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

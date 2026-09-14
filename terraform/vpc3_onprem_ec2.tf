@@ -43,6 +43,19 @@ resource "aws_instance" "onprem" {
   }
 }
 
+resource "aws_eip" "onprem" {
+  instance = aws_instance.onprem.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "onprem-sim-eip"
+  }
+}
+
+output "onprem_eip" {
+  value = aws_eip.onprem.public_ip
+}
+
 output "onprem_public_ip" {
   value = aws_instance.onprem.public_ip
 }
