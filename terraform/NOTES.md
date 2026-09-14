@@ -128,6 +128,36 @@ and budgets:ListTagsForResource was discovered by running a real
 up front. Treat a newly-scoped IAM identity's first deploy as a
 discovery pass, not a validation pass.
 
+## Terraform modify vs. replace: cloud-init skips user_data on same instance ID (9/12/26)
+
+Modified `aws_instance.test`'s `user_data` (added SSM/SSH debug logic)
+and applied normally -- Terraform reported a successful in-place
+modify, same instance ID, no errors. SSM registration never appeared
+(`describe-instance-information` returned empty) and the password/SSH
+changes never took effect either.
+
+Ruled out first, all clean: NAT gateway state (`available`), security
+group egress (0.0.0.0/0 open), IAM, AMI. Root cause: cloud-init tracks
+first-boot completion per instance ID (`/var/lib/cloud/instance/`).
+Since the instance ID never changed (a modify, not a destroy/create),
+cloud-init saw "already initialized for this identity" on the
+stop/start cycle triggered by the apply, and **silently skipped
+`user_data` entirely** -- it never ran, not ran-and-failed. The same
+root cause explained both symptoms at once.
+
+Fix: `terraform apply -replace="aws_instance.test"` -- forces a
+genuine destroy/create regardless of whether any argument changed,
+guaranteeing a new instance ID and a real first boot. Confirmed: the
+fresh instance registered with SSM cleanly (`PingStatus: Online`)
+within seconds of boot.
+
+Lesson: a `user_data` change applied as a same-ID modify is not
+equivalent to a fresh boot for cloud-init's purposes, even though
+Terraform's apply succeeds cleanly and reports no errors. This is the
+most dangerous failure shape -- looks like it worked, does nothing.
+Use `-replace` (or any change that forces a genuine destroy/create)
+whenever `user_data` itself is what needs to re-run.
+
 ## VPN Tunnel Failover Monitor (9/14/26)
 
 Added a systemd-managed script (`playbooks/files/vpn-failover.sh`)
