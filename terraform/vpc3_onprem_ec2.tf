@@ -21,21 +21,21 @@ variable "onprem_key_name" {
 }
 
 resource "aws_instance" "onprem" {
-  ami                         = data.aws_ami.al2023_onprem.id
+  ami                         = "ami-0ac62d2d72afdce51"
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.onprem_public.id
   vpc_security_group_ids      = [aws_security_group.onprem.id]
   key_name                    = var.onprem_key_name
   associate_public_ip_address = true
 
-  # Base strongSwan install only -- ipsec.conf/ipsec.secrets need
+  # Base libreswan install only -- ipsec.conf/ipsec.secrets need
   # AWS-side values (tunnel outside IPs, PSKs) that don't exist until
   # the aws_vpn_connection resource (checklist step 2) is applied.
   # Config population is a post-VPN-creation step, not part of this apply.
   user_data = <<-EOF
     #!/bin/bash
-    dnf install -y strongswan
-    systemctl enable strongswan
+    dnf install -y libreswan
+    systemctl enable ipsec
   EOF
 
   tags = {
