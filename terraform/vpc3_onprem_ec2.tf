@@ -1,19 +1,19 @@
 # vpc3_onprem_ec2.tf
 
-data "aws_ami" "al2023_onprem" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
+#data "aws_ami" "al2023_onprem" {
+#  most_recent = true
+#  owners      = ["amazon"]
+#
+#  filter {
+#    name   = "name"
+#    values = ["al2023-ami-*-x86_64"]
+#  }
+#
+#  filter {
+#    name   = "virtualization-type"
+#    values = ["hvm"]
+#  }
+#}
 
 variable "onprem_key_name" {
   description = "EC2 key pair name for SSH access to the on-prem-sim instance (must pre-exist in AWS)"
