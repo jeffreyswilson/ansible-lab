@@ -32,8 +32,35 @@
         state: started
         enabled: true
 
+    - name: Deploy vpn-failover.sh
+      ansible.builtin.copy:
+        src: files/vpn-failover.sh
+        dest: /usr/local/bin/vpn-failover.sh
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy vpn-failover.service
+      ansible.builtin.copy:
+        src: files/vpn-failover.service
+        dest: /etc/systemd/system/vpn-failover.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload systemd
+
+    - name: Ensure vpn-failover is enabled and running
+      ansible.builtin.systemd:
+        name: vpn-failover
+        state: started
+        enabled: true
+
   handlers:
     - name: Restart ipsec
       ansible.builtin.systemd:
         name: ipsec
         state: restarted
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

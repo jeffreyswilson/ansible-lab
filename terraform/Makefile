@@ -11,7 +11,14 @@ HOURLY_TARGETS := \
 	-target=aws_ec2_transit_gateway_route_table_association.vpc2 \
 	-target=aws_ec2_transit_gateway_route_table_propagation.vpc1 \
 	-target=aws_ec2_transit_gateway_route_table_propagation.vpc2 \
-	-target=aws_route.private_default
+	-target=aws_route.private_default \
+	-target=aws_instance.onprem \
+	-target=aws_eip.onprem \
+	-target=aws_customer_gateway.onprem \
+	-target=aws_vpn_connection.onprem \
+	-target=aws_ec2_transit_gateway_route.onprem \
+	-target=aws_ec2_transit_gateway_route_table_association.onprem \
+	-target=aws_ec2_transit_gateway_route_table_propagation.onprem
 
 MUST_BE_IGNORED := .vault_pass \
 	terraform/terraform.tfstate terraform/terraform.tfstate.backup \
@@ -163,4 +170,3 @@ secrets-check:
 		fi; \
 	done; \
 	[ $$fail -eq 0 ] || (echo "secrets-check FAILED"; exit 1)
-
