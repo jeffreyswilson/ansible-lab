@@ -1,4 +1,7 @@
-# aws_outside_ip values in vpn_tunnels[] below are refreshed by scripts/refresh-onprem-vpn.sh on every terraform resume of aws_vpn_connection.onprem -- a committed value here may already be stale. See that script and aws_lab.md Decisions Log 9/17/26.
+# aws_outside_ip values in vpn_tunnels[] below are refreshed by
+# scripts/refresh-onprem-vpn.sh on every terraform resume of
+# aws_vpn_connection.onprem -- a committed value here may already
+# be stale. See that script and aws_lab.md Decisions Log 9/17/26.
 # group_vars/onprem.yml
 onprem_local_cidr: "10.50.0.0/16"
 onprem_remote_cidr_vpc1: "10.100.0.0/16"
