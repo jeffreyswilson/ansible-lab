@@ -57,5 +57,11 @@ output "onprem_eip" {
 }
 
 output "onprem_public_ip" {
-  value = aws_instance.onprem.public_ip
+  # FIXED 9/17/26: was aws_instance.onprem.public_ip, which lags the EIP
+  # association by one refresh after every resume (see aws_lab.md
+  # Decisions Log, 9/16/26 "one-refresh drift" entry -- confirmed this
+  # session it does NOT self-correct within a scripts runtime,
+  # contradicting that entrys "benign, self-corrects" framing). Now
+  # sources the same value as onprem_eip.
+  value = aws_eip.onprem.public_ip
 }
